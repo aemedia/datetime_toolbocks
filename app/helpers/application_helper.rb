@@ -49,7 +49,8 @@ module ApplicationHelper
     def model_value(object_name, method, format)
       object = instance_variable_get("@#{object_name.to_s}")
       value = object.send(method.to_s()) unless object.nil? || !object.respond_to?(method.to_s())
-      value = value.to_s(DatetimeToolbocks::DATE_FORMATS[format]) if value.class == Date
+      value = value.to_s(format) if value.class == Date
+      # value = value.to_s(DatetimeToolbocks::DATE_FORMATS[format]) if value.class == Date
       (value) ? value : nil
     end
     
