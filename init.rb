@@ -18,10 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #  
 
-
-# load up all the required files we need...
-Engines.current.version = Proc.new { File.open(File.join(RAILS_ROOT, 'vendor', 'plugins', 'datetime_toolbocks', 'VERSION'), 'r').readlines[0] }
-
 require 'datetime_toolbocks'
 
 DatetimeToolbocks::DATE_FORMATS.each { |d| Date::DATE_FORMATS[d[0]] = d[1] }
