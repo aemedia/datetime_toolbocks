@@ -70,7 +70,7 @@ DatetimeToolbocks.CalendarOptions = $H({
   align                   : 'Br'
 });
 
-DatetimeToolbocks.DefaultOptions = {
+DatetimeToolbocks.DefaultOptions = $H({
   /* Configuration Options ---------------------------------------------- */
   //  - iso
   //  - de
@@ -94,7 +94,7 @@ DatetimeToolbocks.DefaultOptions = {
   calendarOptions         : $H(),
   autoRollOver            : true,
   format                  : 'iso'
-};
+});
 
 DatetimeToolbocks.Collection = {
   _collection: [],
@@ -107,7 +107,7 @@ DatetimeToolbocks.Collection = {
     var found = false;
     
     this._collection.each(function(datetime_toolbocks) {
-      datetime_toolbocks_element_id = datetime_toolbocks.options.elementId + datetime_toolbocks.options.elementIdSuffixInput;
+      datetime_toolbocks_element_id = datetime_toolbocks.options.get('elementId') + datetime_toolbocks.options.get('elementIdSuffixInput');
       if (datetime_toolbocks_element_id == element_id) {
         found = datetime_toolbocks;
         throw $break;
@@ -122,8 +122,8 @@ DatetimeToolbocks.prototype = {
   _formatString: 'yyyy-mm-dd',
   
   initialize: function(options) {
-    options.calendarOptions = Object.clone(Object.extend(Object.clone(DatetimeToolbocks.CalendarOptions), options.calendarOptions || {}));
-    this.options = Object.clone(Object.extend(Object.clone(DatetimeToolbocks.DefaultOptions), $H(options) || {}));
+    this.options = DatetimeToolbocks.DefaultOptions.merge($H(options || {}));
+    this.options.set('calendarOptions', DatetimeToolbocks.CalendarOptions.merge($H(options.calendarOptions || {})));
 
     this.setDateType();
 
@@ -138,32 +138,34 @@ DatetimeToolbocks.prototype = {
   },
   
   _configureOptions: function() {
-    this.options.calendarOptions.inputField = this.options.elementId + this.options.elementIdSuffixInput;
-    this.options.messageField = this.options.elementId + this.options.elementIdSuffixMessage;
+    var calendar_options = this.options.get('calendarOptions')
     
-    if (this.options.calendarOptions.flat) {
+    calendar_options.set('inputField', this.options.get('elementId') + this.options.get('elementIdSuffixInput'));
+    this.options.set('messageField', this.options.get('elementId') + this.options.get('elementIdSuffixMessage'));
+    
+    if (calendar_options.get('flat')) {
       // remove all default options that assume it's not flat
       
       // remove align
-      this.options.calendarOptions.remove('align');
+      calendar_options.unset('align');
       
       // set show button to false
-      this.options.showButton = false;
+      this.options.set('showButton', false);
       
       // if the option is set to true, then calculate the element id for the flat calendar
-      this.options.calendarOptions.flat = (this.options.calendarOptions.flat == true) ? (this.options.elementId + this.options.elementIdSuffixFlat) : this.options.calendarOptions.flat;
+      calendar_options.set('flat', (calendar_options == true) ? (this.options.get('elementId') + this.options.get('elementIdSuffixFlat')) : calendar_options.get('flat'));
     }
     
-    this.options.showHelp = (this.options.showHelp == true || this.options.showHelp == false) ? this.options.showHelp : true;
-    this.options.showButton = (this.options.showButton == true || this.options.showButton == false) ? this.options.showButton : true;
-    this.options.buildFlat = (this.options.buildFlat == true || this.options.buildFlat == false) ? this.options.buildFlat : false;
+    this.options.set('showHelp', (this.options.get('showHelp') == true || this.options.get('showHelp') == false) ? this.options.get('showHelp') : true);
+    this.options.set('showButton', (this.options.get('showButton') == true || this.options.get('showButton') == false) ? this.options.get('showButton') : true);
+    this.options.set('buildFlat', (this.options.get('buildFlat') == true || this.options.get('buildFlat') == false) ? this.options.get('buildFlat') : false);
     
-    if (this.options.showButton == true && !this.options.calendarOptions.flat) {
-      this.options.calendarOptions.button = this.options.elementId + this.options.elementIdSuffixButton;
+    if (this.options.get('showButton') == true && !calendar_options.get('flat')) {
+      calendar_options.set('button', this.options.get('elementId') + this.options.get('elementIdSuffixButton'));
     }
     
-    if (this.options.showHelp == true) {
-      this.options.helpField = this.options.elementId + this.options.elementIdSuffixHelp;
+    if (this.options.get('showHelp') == true) {
+      this.options.set('helpField', this.options.get('elementId') + this.options.get('elementIdSuffixHelp'));
     }
   },
   
@@ -171,38 +173,39 @@ DatetimeToolbocks.prototype = {
     // set the default options
     var html = '';
     
-    if (this.options.buildFlat) {
-      html += '<div class="DatetimeToolbocksFlat" id="' + this.options.calendarOptions.flat + '"></div>\n';
+    if (this.options.get('buildFlat')) {
+      html += '<div class="DatetimeToolbocksFlat" id="' + this.options.get('calendarOptions').get('flat') + '"></div>\n';
     }
 
     html += '<div class="DatetimeToolbocks">\n' +
             '  <ul>\n' + 
-            '    <li class="DatetimeToolbocksInput"><input value="' + (this.options.inputValue ? this.options.inputValue : '') + '" id=' + this.options.calendarOptions.inputField + ' name="' + this.options.inputName + '" size="30" type="text" /></li>\n' +
-            ((this.options.showButton) ? '    <li class="DatetimeToolbocksIcon"><img alt="Calendar" id=' + this.options.calendarOptions.button + ' src="/plugin_assets/datetime_toolbocks/images/icon-calendar.gif" style="cursor: pointer;" /></li>\n' : '') +
-            ((this.options.showHelp) ? '    <li class="DatetimeToolbocksHelp"><img alt="Help" id=' + this.options.helpField + ' src="/plugin_assets/datetime_toolbocks/images/icon-help.gif" style="cursor: pointer" /></li>\n' : '') +
+            '    <li class="DatetimeToolbocksInput"><input value="' + (this.options.get('inputValue') ? this.options.get('inputValue') : '') + '" id=' + this.options.get('calendarOptions').get('inputField') + ' name="' + this.options.get('inputName') + '" size="30" type="text" /></li>\n' +
+            ((this.options.get('showButton')) ? '    <li class="DatetimeToolbocksIcon"><img alt="Calendar" id=' + this.options.get('calendarOptions').get('button') + ' src="/plugin_assets/datetime_toolbocks/images/icon-calendar.gif" style="cursor: pointer;" /></li>\n' : '') +
+            ((this.options.get('showHelp')) ? '    <li class="DatetimeToolbocksHelp"><img alt="Help" id=' + this.options.get('helpField') + ' src="/plugin_assets/datetime_toolbocks/images/icon-help.gif" style="cursor: pointer" /></li>\n' : '') +
             '  </ul>\n' +
-            '  <div class="DatetimeToolbocksMessage"><div id=' + this.options.messageField + '></div></div>\n' +
+            '  <div class="DatetimeToolbocksMessage"><div id=' + this.options.get('messageField') + '></div></div>\n' +
             '</div>\n';
 
-    var container_id = this.options.elementId + 'Container';
+    var container_id = this.options.get('elementId') + 'Container';
      
     document.write('<div id="' + container_id + '"></div>');
     new Insertion.Bottom(container_id, html);
 
-    if (this.options.calendarOptions.flat || this.options.showButton) {
-      Calendar.setup(this.options.calendarOptions);
+    if (this.options.get('calendarOptions').get('flat') || this.options.get('showButton')) {
+      Calendar.setup(this.options.get('calendarOptions'));
     }
   },
   
   _attachEvents: function() {
      // attach the events to the Datetime Toolbocks element
-     var input_field = $(this.options.calendarOptions.inputField);
+     var input_field = $(this.options.get('calendarOptions').get('inputField'));
      
      input_field.onchange = function(event) {
         if (!event) { var event = window.event; }
         
         var element_id = (this && this.id) ? this.id : Event.element(event).id;
         var datetime_toolbocks = DatetimeToolbocks.Collection.find(element_id);
+        
         if (!datetime_toolbocks) { return; }
 
         return datetime_toolbocks.magicDate();
@@ -225,8 +228,8 @@ DatetimeToolbocks.prototype = {
      }
      
      // add the event for when a user clicks on the help icon
-     if (this.options.showHelp) {
-       $(this.options.helpField).onclick = function() {
+     if (this.options.get('showHelp')) {
+       $(this.options.get('helpField')).onclick = function() {
         DatetimeToolbocks.windowOpenCenter('/datetime_toolbocks/help', 'DatetimeToolbocksHelp', 'width=500,height=430,autocenter=true');
        }
      }
@@ -637,35 +640,36 @@ DatetimeToolbocks.prototype = {
   /* Methods ------------------------------------------------------------ */
 
   setDateType: function() {
-    switch (this.options.format) {
+    switch (this.options.get('format')) {
       case 'mm/dd/yyyy':
       case 'us':
-        this.options.calendarOptions.ifFormat = '%m/%d/%Y';
+        this.options.get('calendarOptions').set('ifFormat', '%m/%d/%Y');
         this._formatString = 'mm/dd/yyyy';
         break;
       case 'mm.dd.yyyy':
       case 'de':
-        this.options.calendarOptions.ifFormat = '%m.%d.%Y';
+        this.options.get('calendarOptions').set('ifFormat', '%m.%d.%Y');
         this._formatString = 'mm.dd.yyyy';
         break;
       case 'dd/mm/yyyy':
-        this.options.calendarOptions.ifFormat = '%d/%m/%Y';
+        this.options.get('calendarOptions').set('ifFormat', '%d/%m/%Y');
         this._formatString = 'dd/mm/yyyy';
         break;
       case 'dd-mm-yyyy':
-        this.options.calendarOptions.ifFormat = '%d-%m-%Y';
+        this.options.get('calendarOptions').set('ifFormat', '%d-%m-%Y');
         this._formatString = 'dd-mm-yyyy';
         break;
       case 'yyyy-mm-dd':
       case 'iso':
       case 'default':
       default:
-        this.options.calendarOptions.ifFormat = '%Y-%m-%d';
+        this.options.get('calendarOptions').set('ifFormat', '%Y-%m-%d');
         this._formatString = 'yyyy-mm-dd';
         break;
     }
 
-    this.options.calendarOptions.ifFormat = this.options.calendarOptions.ifFormat;
+    // Isn't this totally redundant?
+    this.options.get('calendarOptions').set('ifFormat', this.options.get('calendarOptions').get('ifFormat'));
   },
 
   /* Takes a string, returns the index of the month matching that string,
@@ -699,7 +703,7 @@ DatetimeToolbocks.prototype = {
   },
 
   getFormat: function() {
-    switch (this.options.format) {
+    switch (this.options.get('format')) {
       case 'de':
        format = 'mm.dd.yyyy'; break;
       case 'us':
@@ -707,7 +711,7 @@ DatetimeToolbocks.prototype = {
       case 'iso':
        format = 'yyyy-mm-dd'; break;
       default:
-       format = this.options.format; break;
+       format = this.options.get('format'); break;
     }
 
     return format;
@@ -721,7 +725,7 @@ DatetimeToolbocks.prototype = {
     if ( mm < 0 || mm > 11 )
       throw new Error('Invalid month value.  Valid months values are 1 to 12. Format: ' + this.getFormat());
 
-    if (!this.options.autoRollOver) {
+    if (!this.options.get('autoRollOver')) {
       // get last day in month
       var d = (11 == mm)
         ? new Date(yyyy + 1, 0, 0)
@@ -780,8 +784,8 @@ DatetimeToolbocks.prototype = {
 
   /* Try to make sense of the date in id.value . */
   magicDate: function() {
-    var input = $(this.options.calendarOptions.inputField);
-    var messageSpan = $(this.options.messageField);
+    var input = $(this.options.get('calendarOptions').get('inputField'));
+    var messageSpan = $(this.options.get('messageField'));
 
     try {
       var d = this.parseDateString(input.value);
@@ -790,7 +794,7 @@ DatetimeToolbocks.prototype = {
       var month = this.zeroPad(d.getMonth() + 1);
       var year = d.getFullYear();
 
-      switch (this.options.format) {
+      switch (this.options.get('format')) {
         case 'dd/mm/yyyy':
           input.value = day + '/' + month + '/' + year;
           break;
@@ -818,10 +822,10 @@ DatetimeToolbocks.prototype = {
       // Human readable date
       if (messageSpan) {
         messageSpan.innerHTML = d.toDateString();
-        messageSpan.className = this.options.classNameSuccess;
+        messageSpan.className = this.options.get('classNameSuccess');
       }
     } catch (e) {
-      input.className = this.options.classNameError;
+      input.className = this.options.get('classNameError');
       
       if (messageSpan) {
         var message = e.message;
@@ -830,7 +834,7 @@ DatetimeToolbocks.prototype = {
             message = 'Invalid date string';
         }
         messageSpan.innerHTML = message;
-        messageSpan.className = this.options.classNameError;
+        messageSpan.className = this.options.get('classNameError');
       }
     }
   },
@@ -855,7 +859,7 @@ DatetimeToolbocks.prototype = {
   },
   
   setDefaultFormatMessage: function() {
-    $(this.options.messageField).innerHTML = this._formatString;
+    $(this.options.get('messageField')).innerHTML = this._formatString;
   }
 };
 

@@ -60,8 +60,8 @@
  *  saying "nothing to setup".
  */
 Calendar.setup = function (params) {
-	function param_default(pname, def) { if (typeof params[pname] == "undefined") { params[pname] = def; } };
-
+	function param_default(pname, def) { if (typeof(params.get(pname)) == "undefined") { params.set(pname, def); } };
+	
 	param_default("inputField",     null);
 	param_default("displayArea",    null);
 	param_default("button",         null);
@@ -71,7 +71,7 @@ Calendar.setup = function (params) {
 	param_default("daFormat",       "%Y/%m/%d");
 	param_default("singleClick",    true);
 	param_default("disableFunc",    null);
-	param_default("dateStatusFunc", params["disableFunc"]);	// takes precedence if both are defined
+	param_default("dateStatusFunc", params.get('disableFunc'));	// takes precedence if both are defined
 	param_default("dateText",       null);
 	param_default("firstDay",       null);
 	param_default("align",          "Br");
@@ -95,108 +95,108 @@ Calendar.setup = function (params) {
 	var tmp = ['inputField', 'displayArea', 'button', 'help'];
 	
 	for (var i = 0; i < tmp.length; i++) {
-		if (typeof params[tmp[i]] == "string") {
-			params[tmp[i]] = document.getElementById(params[tmp[i]]);
+		if (typeof(params.get(tmp[i])) == "string") {
+			params.set(tmp[i], document.getElementById(params.get(tmp[i])));
 		}
 	}
 	
-	if (!(params.flat || params.multiple || params.inputField || params.displayArea || params.button)) {
-		alert("Calendar.setup:\n  Nothing to setup (no fields found).  Please check your code. " + params.toString());
+	if (!(params.get('flat') || params.get('multiple') || params.get('inputField') || params.get('displayArea') || params.get('button'))) {
+		alert("Calendar.setup:\n  Nothing to setup (no fields found).  Please check your code. " + params.toQueryString());
 		return false;
 	}
 
 	function onSelect(cal) {
 		var p = cal.params;
-		var update = (cal.dateClicked || p.electric);
-		if (update && p.inputField) {
-			p.inputField.value = cal.date.print(p.ifFormat);
-			if (typeof p.inputField.onchange == "function")
-				p.inputField.onchange();
+		var update = (cal.dateClicked || p.get('electric'));
+		if (update && p.get('inputField')) {
+			p.get('inputField').value = cal.date.print(p.get('ifFormat'));
+			if (typeof(p.get('inputField').onchange) == "function")
+				p.get('inputField').onchange();
 		}
-		if (update && p.displayArea)
-			p.displayArea.innerHTML = cal.date.print(p.daFormat);
-		if (update && typeof p.onUpdate == "function")
-			p.onUpdate(cal);
-		if (update && p.flat) {
-			if (typeof p.flatCallback == "function")
-				p.flatCallback(cal);
+		if (update && p.get('displayArea'))
+			p.get('displayArea').innerHTML = cal.date.print(p.get('daFormat'));
+		if (update && typeof(p.get('onUpdate')) == "function")
+			p.get('onUpdate')(cal);
+		if (update && p.get('flat')) {
+			if (typeof(p.get('flatCallback')) == "function")
+				p.get('flatCallback')(cal);
 		}
-		if (update && p.singleClick && cal.dateClicked)
+		if (update && p.get('singleClick') && cal.dateClicked)
 			cal.callCloseHandler();
 	};
 
-	if (params.flat != null) {
-		if (typeof params.flat == "string")
-			params.flat = document.getElementById(params.flat);
-		if (!params.flat) {
+	if (params.get('flat') != null) {
+		if (typeof(params.get('flat')) == "string")
+			params.set('flat', document.getElementById(params.get('flat')));
+		if (!params.get('flat')) {
 			alert("Calendar.setup:\n  Flat specified but can't find parent.");
 			return false;
 		}
-		var cal = new Calendar(params.firstDay, params.date, params.onSelect || onSelect);
-		cal.showsOtherMonths = params.showOthers;
-		cal.showsTime = params.showsTime;
-		cal.time24 = (params.timeFormat == "24");
+		var cal = new Calendar(params.get('firstDay'), params.get('date'), params.get('onSelect') || onSelect);
+		cal.showsOtherMonths = params.get('showOthers');
+		cal.showsTime = params.get('showsTime');
+		cal.time24 = (params.get('timeFormat') == "24");
 		cal.params = params;
-		cal.weekNumbers = params.weekNumbers;
-		cal.setRange(params.range[0], params.range[1]);
-		cal.setDateStatusHandler(params.dateStatusFunc);
-		cal.getDateText = params.dateText;
-		if (params.ifFormat) {
-			cal.setDateFormat(params.ifFormat);
+		cal.weekNumbers = params.get('weekNumbers');
+		cal.setRange(params.get('range')[0], params.get('range')[1]);
+		cal.setDateStatusHandler(params.get('dateStatusFunc'));
+		cal.getDateText = params.get('dateText');
+		if (params.get('ifFormat')) {
+			cal.setDateFormat(params.get('ifFormat'));
 		}
-		cal.create(params.flat);
-		if (params.inputField && typeof params.inputField.value == "string") {
-			cal.parseDate(params.inputField.value);
+		cal.create(params.get('flat'));
+		if (params.get('inputField') && typeof(params.get('inputField').value) == "string") {
+			cal.parseDate(params.get('inputField').value);
 		}
 		cal.show();
 		return false;
 	}
 
-	var triggerEl = params.button || params.displayArea || params.inputField;
+	var triggerEl = params.get('button') || params.get('displayArea') || params.get('inputField');
 
-	triggerEl["on" + params.eventName] = function() {
-		var dateEl = params.inputField || params.displayArea;
-		var dateFmt = params.inputField ? params.ifFormat : params.daFormat;
+	triggerEl["on" + params.get('eventName')] = function() {
+		var dateEl = params.get('inputField') || params.get('displayArea');
+		var dateFmt = params.get('inputField') ? params.get('ifFormat') : params.get('daFormat');
 		var mustCreate = false;
 		var cal = window.calendar;
 		if (dateEl)
 			params.date = Date.parseDate(dateEl.value || dateEl.innerHTML, dateFmt);
-		if (!(cal && params.cache)) {
-			window.calendar = cal = new Calendar(params.firstDay,
-							     params.date,
-							     params.onSelect || onSelect,
-							     params.onClose || function(cal) { cal.hide(); });
-			cal.showsTime = params.showsTime;
-			cal.time24 = (params.timeFormat == "24");
-			cal.weekNumbers = params.weekNumbers;
+		if (!(cal && params.get('cache'))) {
+			window.calendar = cal = new Calendar(params.get('firstDay'),
+							     params.get('date'),
+							     params.get('onSelect') || onSelect,
+							     params.get('onClose') || function(cal) { cal.hide(); });
+			cal.showsTime = params.get('showsTime');
+			cal.time24 = (params.get('timeFormat') == "24");
+			cal.weekNumbers = params.get('weekNumbers');
 			mustCreate = true;
 		} else {
-			if (params.date)
-				cal.setDate(params.date);
+			if (params.get('date'))
+				cal.setDate(params.get('date'));
 			cal.hide();
 		}
-		if (params.multiple) {
+		if (params.get('multiple')) {
 			cal.multiple = {};
-			for (var i = params.multiple.length; --i >= 0;) {
-				var d = params.multiple[i];
+			for (var i = params.get('multiple').length; --i >= 0;) {
+				var d = params.get('multiple')[i];
 				var ds = d.print("%Y%m%d");
 				cal.multiple[ds] = d;
 			}
 		}
-		cal.showsOtherMonths = params.showOthers;
-		cal.yearStep = params.step;
-		cal.setRange(params.range[0], params.range[1]);
+		cal.showsOtherMonths = params.get('showOthers');
+		cal.yearStep = params.get('step');
+		cal.setRange(params.get('range')[0], params.get('range')[1]);
 		cal.params = params;
-		cal.setDateStatusHandler(params.dateStatusFunc);
-		cal.getDateText = params.dateText;
+		cal.setDateStatusHandler(params.get('dateStatusFunc'));
+		cal.getDateText = params.get('dateText');
 		cal.setDateFormat(dateFmt);
 		if (mustCreate)
 			cal.create();
 		cal.refresh();
-		if (!params.position) {
-			cal.showAtElement(params.button || params.displayArea || params.inputField, params.align);
+		if (!params.get('position')) {
+			cal.showAtElement(params.get('button') || params.get('displayArea') || params.get('inputField'), params.get('align'));
 		} else {
-			cal.showAt(params.position[0], params.position[1]);
+			cal.showAt(params.get('position')[0], params.get('position')[1]);
 		}
 		return false;
 	};
